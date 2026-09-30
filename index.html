@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-CVy1FbgagOYZ8RKtGCx1bI+uuBu2yhIwi3s1w8Ak/mo='; style-src 'self' 'unsafe-inline'; img-src data:; frame-src 'self' about:; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="theme-color" content="#173e3b">
+  <title>Apri il tuo report · Force27</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./reader.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header class="reader-header">
+    <a class="brand" href="./" aria-label="Force27, torna all’inizio"><span class="brand-mark">F27</span><span>Force27<span class="brand-detail">IL TUO REPORT</span></span></a>
+    <span class="local-badge"><span aria-hidden="true">●</span> Sul tuo dispositivo</span>
+  </header>
+  <main id="home">
+    <section class="welcome" aria-labelledby="welcome-title">
+      <div class="welcome-copy">
+        <p class="eyebrow">RISULTATI E MOVIMENTO</p>
+        <h1 id="welcome-title">Il tuo test,<br>a portata di mano.</h1>
+        <p class="intro">Apri il report ricevuto dal tuo professionista. Esplora i risultati e rivedi il movimento, al tuo ritmo.</p>
+        <label class="open-button" for="report-file">
+          <svg width="22" height="24" viewBox="0 0 22 24" fill="none" aria-hidden="true"><path d="M5 2h8l5 5v15H4V2h1ZM13 2v6h5M8 13h6M8 17h6" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          Apri report
+          <input id="report-file" type="file" accept=".html,.htm,text/html" aria-label="Apri report HTML Force27">
+        </label>
+        <p class="hint">Seleziona il file HTML che hai ricevuto.</p>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <p id="error" class="error" role="alert" hidden></p>
+      </div>
+      <aside class="how-to" aria-label="Come aprire il report">
+        <p class="eyebrow">BASTANO TRE PASSAGGI</p>
+        <ol>
+          <li><span class="step">1</span><div><h2>Salva l’allegato</h2><p>Da WhatsApp o email, salva il report in File. Su iPhone scegli “Sul mio iPhone”.</p></div></li>
+          <li><span class="step">2</span><div><h2>Aprilo da qui</h2><p>Tocca “Apri report” e scegli l’HTML appena salvato.</p></div></li>
+          <li><span class="step">3</span><div><h2>Guarda il tuo test</h2><p>Premi Play o sposta il cursore per osservare insieme forza e movimento.</p></div></li>
+        </ol>
+      </aside>
+    </section>
+    <section class="privacy-note" aria-label="I tuoi dati">
+      <svg width="22" height="25" viewBox="0 0 22 25" fill="none" aria-hidden="true"><path d="m11 2 8 3v7c0 5-8 10-8 10S3 17 3 12V5l8-3Z" stroke="currentColor" stroke-width="1.8"/><path d="m7 11 3 3 5-5" stroke="currentColor" stroke-width="1.8"/></svg>
+      <div><strong>Il report rimane sul tuo dispositivo.</strong><p>Questo lettore apre il file senza inviarlo a un server. Non serve un account.</p></div>
+    </section>
+    <details class="help"><summary>L’allegato si apre in Anteprima su iPhone?</summary><p>È normale che il telefono mostri prima un’anteprima. Salva l’allegato in File, torna su questa pagina in Safari e tocca <strong>Apri report</strong>. Grafici e movimento si apriranno nel lettore.</p><p>Il lettore supporta i report HTML Jump esportati da Force27 dalla versione 1.3.8.</p></details>
+    <noscript><p class="error">Per usare grafici e movimento apri questa pagina in un browser con JavaScript attivo.</p></noscript>
+  </main>
+  <section id="viewer" class="viewer" aria-label="Report selezionato" hidden>
+    <div class="viewer-toolbar"><div><strong id="report-name"></strong><span>Letto sul tuo dispositivo</span></div><button id="close-report" type="button">Chiudi report <span aria-hidden="true">×</span></button></div>
+    <div id="frame-host"></div>
+  </section>
+  <footer id="reader-footer"><span>FORCE27 · LETTORE 1.1</span><span>Nessun caricamento dei report</span></footer>
+</body>
+</html>
