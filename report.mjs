@@ -72,7 +72,17 @@ export function validateReport(input) {
   const logo = nullableText(d.logoBase64, 10 * 1024 * 1024);
   if (logo && (!logo.startsWith('iVBORw0KGgo') || !/^[A-Za-z0-9+/]+={0,2}$/.test(logo))) bad();
   if (typeof d.isDemo !== 'boolean') bad();
+  let palette;
+  if(d.palette != null) {
+    object(d.palette); palette={};
+    for(const role of ['total','left','right']) {
+      const color=text(d.palette[role],7);
+      if(!/^#[0-9a-f]{6}$/i.test(color)) bad();
+      palette[role]=color;
+    }
+  }
   return {
+    ...(palette ? {palette} : {}),
     schemaVersion:1, athlete:text(d.athlete,1000), organization:text(d.organization,1000),
     dateLabel:text(d.dateLabel,200), protocolName:text(d.protocolName,200),
     appVersion:text(d.appVersion,100), algorithmVersion:text(d.algorithmVersion,200),
@@ -86,6 +96,15 @@ export function validateReport(input) {
 export const escapeHTML = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const jsonText = d => JSON.stringify(d).replace(/[<>&\u2028\u2029]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));
 
+// Match JumpHTMLReportRenderer; never rewrite the imported snapshot.
+const signalChannel = name => (new Map([['Totale','total'],['Sinistra','left'],['Destra','right']]).get(name) ?? 'neutral');
+const metricChannel = id => {
+  const parts=id.split('-');
+  if(parts.includes('left')) return 'left';
+  if(parts.includes('right')) return 'right';
+  return (parts.includes('total')||parts.includes('sum')) || ['peak','minimum','energy','relative-force','relative-bw','peak-power','relative-power','relative-max','contact-impulse'].includes(id)?'total':'neutral';
+};
+
 function chartSVG(signals) {
   let end = .001, low = 0, high = 1;
   for (const s of signals) for (const p of s.points) {end=Math.max(end,p.t);low=Math.min(low,p.y);high=Math.max(high,p.y);}
@@ -93,7 +112,7 @@ function chartSVG(signals) {
   for(let i=0;i<=4;i++) {const y=24+i*58;svg+=`<line x1="58" y1="${f(y)}" x2="880" y2="${f(y)}" class="gridline"/><text x="48" y="${f(y+4)}" text-anchor="end" class="axis">${(high-i*span/4).toFixed(0)}</text>`;}
   for(const s of signals) {let path='',previous;
     for(const p of s.points) {const command=previous===undefined||p.t-previous>.05?'M':'L';path+=`${command}${f(58+p.t/end*822)},${f(256-(p.y-low)/span*232)} `;previous=p.t;}
-    svg+=`<path d="${path}" stroke="${s.color}" fill="none" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+    svg+=`<path d="${path}" stroke="${s.color}" data-channel="${signalChannel(s.name)}" fill="none" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
   }
   for(let i=0;i<=4;i++){const t=end*i/4;svg+=`<text x="${f(58+t/end*822)}" y="282" text-anchor="middle" class="axis">${f(t)} s</text>`;}
   return svg;
@@ -103,8 +122,9 @@ export function renderReport(input) {
   const d = validateReport(input), e = escapeHTML;
   const preferred=['height','rj-height-best','flight','contact','rsi','peak','velocity'];
   const rank=m=>{const i=preferred.indexOf(m.id);return i<0?100:i;};
-  const card=m=>`<article class="metric"><p class="metric-title">${e(m.title)}</p><p class="metric-value">${e(m.measurement)}</p><p class="metric-description">${e(m.explanation)}</p>${m.comparison?`<p class="delta">${e(m.comparison)}</p>`:''}</article>`;
-  const tokens={ATHLETE:e(d.athlete),ORGANIZATION:e(d.organization),DATE:e(d.dateLabel),PROTOCOL:e(d.protocolName),
+  const card=m=>`<article class="metric" data-channel="${metricChannel(m.id)}"><p class="metric-title">${e(m.title)}</p><p class="metric-value">${e(m.measurement)}</p><p class="metric-description">${e(m.explanation)}</p>${m.comparison?`<p class="delta">${e(m.comparison)}</p>`:''}</article>`;
+  const palette=d.palette??{total:'#ff8c38',left:'#1fd1fa',right:'#ff4040'};
+  const tokens={SIGNAL_TOTAL:palette.total,SIGNAL_LEFT:palette.left,SIGNAL_RIGHT:palette.right,ATHLETE:e(d.athlete),ORGANIZATION:e(d.organization),DATE:e(d.dateLabel),PROTOCOL:e(d.protocolName),
     METRICS:[...d.metrics].sort((a,b)=>rank(a)-rank(b)).slice(0,4).map(card).join(''),DETAILS:d.metrics.map(card).join(''),DATA:jsonText(d),
     COMMENT_SECTION:d.comment.trim()?`<section class="note"><div><div class="eyebrow">Il prossimo passo</div><h2>Il commento del professionista</h2></div><p class="comment">${e(d.comment)}</p></section>`:'',
     WARNINGS:d.warnings.length?`<aside class="notice"><strong>Da leggere insieme al risultato</strong><ul>${d.warnings.map(w=>`<li>${e(w)}</li>`).join('')}</ul></aside>`:'',
